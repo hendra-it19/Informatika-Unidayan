@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    @import url("https://fonts.googleapis.com/css2?family=Inter:slnt,wght@-10..0,100..900&display=swap");
+    html {
+        font-family: "Inter", system-ui, sans-serif;
+    }
+    h1 {
+        @apply font-semibold text-base lg:text-lg xl:text-xl text-gray-700;
+    }
+}
+
+@layer components {
+    .custom-container {
+        @apply w-full max-w-screen-xl px-4 md:px-8 lg:px-16;
+    }
+
+    .navbar-link {
+        @apply md:border-0 text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-primary-700 block py-2 px-3 rounded md:p-0;
+    }
+
+    .navbar-link-active {
+        @apply text-gray-900 bg-gray-200 md:bg-transparent md:text-primary-500 block py-2 px-3 rounded md:p-0 relative w-full;
+    }
+
+    .input-primary {
+        @apply border-gray-300 text-sm rounded focus:ring-primary-500 focus:border-primary-500 block w-full ps-10 px-2.5 text-gray-900 bg-gray-50 border py-1.5 lg:py-2;
+    }
+    .input-error {
+        @apply border-red-300 text-sm rounded focus:ring-red-500 focus:border-red-500 block w-full ps-10 px-2.5 text-gray-900 bg-gray-50 border py-1.5 lg:py-2;
+    }
+    .captcha-primary {
+        @apply border-gray-300 text-sm rounded focus:ring-primary-500 focus:border-primary-500 block w-full py-1 px-5 text-gray-900 bg-gray-50 border;
+    }
+    .captcha-error {
+        @apply border-red-300 text-sm rounded focus:ring-red-500 focus:border-red-500 block w-full py-1 px-5 text-gray-900 bg-gray-50 border;
+    }
+    .sidebar {
+        @apply flex items-center p-2 rounded text-gray-800 hover:bg-primary-200 transition duration-200;
+    }
+    .sidebar-active {
+        @apply flex items-center p-2 rounded text-gray-200 bg-primary-500 hover:text-gray-800 transition duration-200;
+    }
+    .sidebar-icon {
+        @apply aspect-square h-4 xl:h-5;
+    }
+    .sidebar-child {
+        @apply flex items-center w-full p-2 text-gray-900 transition duration-75 rounded pl-11 hover:bg-gray-200;
+    }
+    .sidebar-child-active {
+        @apply flex items-center w-full p-2 transition duration-75 rounded pl-11 hover:bg-gray-200 text-primary-500;
+    }
+    .is-invalid {
+        @apply border-2 border-red-300 focus:border-red-500 focus:outline-red-200;
+    }
+    .input {
+        @apply focus:border-2 border-gray-300 focus:border-primary-500 focus:outline-primary-200;
+    }
+
+    .select2-dropdown {
+        @apply absolute block w-auto box-border bg-white border-solid border border-gray-600 z-50 float-left;
+    }
+
+    .input-file {
+        @apply block w-full text-xs text-gray-900 border border-gray-300 rounded cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none;
+    }
+    .input-file-error {
+        @apply block w-full text-xs text-gray-900 border border-red-400 rounded cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none;
+    }
+
+    .label-ct {
+        @apply block mb-1.5 text-sm text-gray-800;
+    }
+    .error-message-ct {
+        @apply -mt-[1px] block text-red-500 text-[11px];
+    }
+    .input-ct {
+        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2.5 lg:py-2;
+    }
+    .input-error-ct {
+        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2.5 lg:py-2;
+    }
+
+    .btn-primary {
+        @apply py-1 px-3 rounded text-sm md:text-base bg-primary-500 hover:bg-primary-600 hover:shadow-md focus:bg-primary-700 focus:ring-2 focus:ring-primary-200 text-white;
+    }
+    .btn-secondary {
+        @apply py-1 px-3 rounded text-sm md:text-base bg-gray-500 hover:bg-gray-600 hover:shadow-md focus:bg-gray-700 focus:ring-2 focus:ring-gray-200 text-white;
+    }
+}
