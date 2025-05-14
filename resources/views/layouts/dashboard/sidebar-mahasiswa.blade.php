@@ -43,7 +43,7 @@
                 d="M5 3a2 2 0 0 0-2 2v6h6V9a3 3 0 0 1 3-3h8c.35 0 .687.06 1 .17V5a2 2 0 0 0-2-2H5Zm4 10H3v2a2 2 0 0 0 2 2h4v-4Z"
                 clip-rule="evenodd" />
         </svg>
-        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Tugas Akhir</span>
+        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">KP & MSIB</span>
         <svg class="w-2.5 h-2.5 group-focus:rotate-180 duration-300 transition" aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -2,6 +2,9 @@
 
 @section('pages')
     @inject('carbon', 'Carbon\carbon')
+    @php
+        $carbon::setLocale('id');
+    @endphp
     <section class="min-h-screen">
         <nav class="mt-4 mb-6 xl:mb-10 flex px-5 py-2 text-gray-700 rounded bg-white shadow-sm" aria-label="Breadcrumb">
             <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse text-xs xl:text-sm">
@@ -39,29 +42,33 @@
                 <a class="btn-secondary cursor-not-allowed">Sudah ada KP terdaftar</a>
             @endif
             <div class="relative overflow-x-auto rounded mt-4">
-                <table style="table-layout: responsive" class="w-full text-sm text-left rtl:text-right text-gray-500">
+                <table style="table-layout: responsive"
+                    class="w-full text-sm text-left rtl:text-right text-gray-500 border p-0.5">
                     <thead class="text-xs text-gray-100 bg-primary-500">
                         <tr>
                             <th scope="col" class="p-2 lg:p-3 px-6">
-                                No
+                                Tahun
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Judul
+                                Periode Semester
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Uploader
+                                Mitra
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Kategori
+                                Pendaftar Kelompok
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Sampul
+                                Pendaftar
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Excerpt
+                                Tanggal Mulai
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
-                                Waktu Pembuatan
+                                Tanggal Selesai
+                            </th>
+                            <th scope="col" class="p-2 lg:p-3">
+                                Status
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
                                 Aksi
@@ -72,99 +79,124 @@
                         @forelse ($data as $r)
                             <tr class="bg-white border-b hover:bg-primary-50 text-xs">
                                 <th scope="row" class="p-2 lg:p-3 px-6 text-gray-900 whitespace-nowrap uppercase">
-                                    {{ ++$i }}
+                                    {{ $r->kerjaPraktek->tahun }}
                                 </th>
                                 <th scope="row" class="p-2 lg:p-3 uppercase font-normal">
-                                    <p class="line-clamp-2 hover:line-clamp-none"> {{ $r->judul }}</p>
+                                    {{ $r->kerjaPraktek->semester }}
                                 </th>
                                 <td class="p-2 lg:p-3 uppercase">
-                                    {{ $r->user->role }}
+                                    {{ $r->kerjaPraktek->mitra }}
                                 </td>
                                 <td class="p-2 lg:p-3 uppercase">
-                                    {{ $r->kategori->nama }}
-                                </td>
-                                <td class="p-2 lg:p-3 h-16 aspect-video">
-                                    <img src="{{ asset($r->foto) }}" alt="{{ $r->slug }}"
-                                        class="h-16 rounded shadow-sm aspect-video object-fill">
-                                </td>
-                                <td class="p-2 lg:p-3 w-5">
-                                    <p class="line-clamp-2 text-wrap">{{ $r->excerpt }}</p>
+                                    {{ $r->kerjaPraktek->diusulkan_oleh }}
                                 </td>
                                 <td class="p-2 lg:p-3">
-                                    {{ $carbon::parse($r->created_at) }}
+                                    <button data-modal-target="modal-list-pendaftar"
+                                        data-modal-toggle="modal-list-pendaftar"
+                                        class="py-1 px-2 bg-primary-500 text-white rounded hover:shadow-md hover:bg-primary-600 focus:bg-primary-700 focus:ring-2 focus:ring-primary-200">
+                                        {{ count($r->kerjaPraktek->pendaftaran) }} Orang</button>
+                                    @include('dashboard.kerja-praktek-mahasiswa.modal-list-pendaftar')
+                                </td>
+                                <td class="p-2 lg:p-3">
+                                    {{ $carbon::parse($r->tanggal_mulai)->translatedFormat('l, d F Y') }}
+                                </td>
+                                <td class="p-2 lg:p-3">
+                                    {{ $carbon::parse($r->tanggal_selesai)->translatedFormat('l, d F Y') }}
+                                </td>
+                                <td class="p-2 lg:p-3">
+                                    @switch($r->status)
+                                        @case('menunggu')
+                                            <span class="py-1 px-2 rounded shadow text-white bg-yellow-500">Menunggu</span>
+                                        @break
+
+                                        @case('diterima')
+                                            <span class="py-1 px-2 rounded shadow text-white bg-green-500">Diterima</span>
+                                        @break
+
+                                        @case('ditolak')
+                                            <span class="py-1 px-2 rounded shadow text-white bg-red-500">Ditolak</span>
+                                        @break
+                                    @endswitch
                                 </td>
                                 <td class="p-2 lg:p-3 relative">
-                                    <button
-                                        class="peer text-gray-800 hover:text-primary-500 focus:border-primary-200 focus:border-2 rounded">
-                                        <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                                                d="M6 12h.01m6 0h.01m5.99 0h.01" />
-                                        </svg>
-                                    </button>
-                                    <div
-                                        class="absolute peer-focus:flex top-0 -left-2 bg-white shadow-lg rounded p-2 hover:flex gap-1 hidden">
-                                        <a href="{{ route('kegiatan-prodi.edit', $r->id) }}"
-                                            class="inline-block w-[18px] text-yellow-400 hover:text-yellow-600">
-                                            <svg class="aspect-square w-full" aria-hidden="true"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M18 5V4a1 1 0 0 0-1-1H8.914a1 1 0 0 0-.707.293L4.293 7.207A1 1 0 0 0 4 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5M9 3v4a1 1 0 0 1-1 1H4m11.383.772 2.745 2.746m1.215-3.906a2.089 2.089 0 0 1 0 2.953l-6.65 6.646L9 17.95l.739-3.692 6.646-6.646a2.087 2.087 0 0 1 2.958 0Z" />
-                                            </svg>
-                                        </a>
-                                        <form action="{{ route('kegiatan-prodi.destroy', $r->id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Yakin ingin menghapus data?')"
-                                                class="inline-block w-[18px] text-red-500 hover:text-red-700">
-                                                <svg class="aspect-square w-full" aria-hidden="true"
-                                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <path stroke="currentColor" stroke-linecap="round"
-                                                        stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
-                                                </svg>
-                                            </button>
-                                        </form>
+                                    <div class="flex flex-col gap-1">
+                                        @switch($r->status)
+                                            @case('menunggu')
+                                                <form action="{{ route('kerja-praktek.batal-daftar', $r->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('delete')
+                                                    <button onclick="return confirm('Yakin ingin menghapus pendaftaran?')"
+                                                        class="btn-danger text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
+                                                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                            width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path fill-rule="evenodd"
+                                                                d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Batal
+                                                    </button>
+                                                </form>
+                                            @break
+
+                                            @case('diterima')
+                                                <a href="{{ route('kerja-praktek.laporan', $r->kerjaPraktek->id) }}"
+                                                    class="btn-primary text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
+                                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                        width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path fill-rule="evenodd"
+                                                            d="M4.998 7.78C6.729 6.345 9.198 5 12 5c2.802 0 5.27 1.345 7.002 2.78a12.713 12.713 0 0 1 2.096 2.183c.253.344.465.682.618.997.14.286.284.658.284 1.04s-.145.754-.284 1.04a6.6 6.6 0 0 1-.618.997 12.712 12.712 0 0 1-2.096 2.183C17.271 17.655 14.802 19 12 19c-2.802 0-5.27-1.345-7.002-2.78a12.712 12.712 0 0 1-2.096-2.183 6.6 6.6 0 0 1-.618-.997C2.144 12.754 2 12.382 2 12s.145-.754.284-1.04c.153-.315.365-.653.618-.997A12.714 12.714 0 0 1 4.998 7.78ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                    Lihat
+                                                </a>
+                                            @break
+
+                                            @case('ditolak')
+                                                @if ($cekPendaftaran)
+                                                    <a href="{{ route('kerja-praktek.daftar') }}"
+                                                        class="btn-primary text-nowrap text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
+                                                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                            width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path fill-rule="evenodd"
+                                                                d="M11.32 6.176H5c-1.105 0-2 .949-2 2.118v10.588C3 20.052 3.895 21 5 21h11c1.105 0 2-.948 2-2.118v-7.75l-3.914 4.144A2.46 2.46 0 0 1 12.81 16l-2.681.568c-1.75.37-3.292-1.263-2.942-3.115l.536-2.839c.097-.512.335-.983.684-1.352l2.914-3.086Z"
+                                                                clip-rule="evenodd" />
+                                                            <path fill-rule="evenodd"
+                                                                d="M19.846 4.318a2.148 2.148 0 0 0-.437-.692 2.014 2.014 0 0 0-.654-.463 1.92 1.92 0 0 0-1.544 0 2.014 2.014 0 0 0-.654.463l-.546.578 2.852 3.02.546-.579a2.14 2.14 0 0 0 .437-.692 2.244 2.244 0 0 0 0-1.635ZM17.45 8.721 14.597 5.7 9.82 10.76a.54.54 0 0 0-.137.27l-.536 2.84c-.07.37.239.696.588.622l2.682-.567a.492.492 0 0 0 .255-.145l4.778-5.06Z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Daftar
+                                                    </a>
+                                                @else
+                                                    <a
+                                                        class="btn-secondary text-nowrap hover:cursor-not-allowed hover:shadow-none hover:bg-gray-500 text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
+                                                        <svg class="w-4 h-4" aria-hidden="true"
+                                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                            fill="currentColor" viewBox="0 0 24 24">
+                                                            <path fill-rule="evenodd"
+                                                                d="M11.32 6.176H5c-1.105 0-2 .949-2 2.118v10.588C3 20.052 3.895 21 5 21h11c1.105 0 2-.948 2-2.118v-7.75l-3.914 4.144A2.46 2.46 0 0 1 12.81 16l-2.681.568c-1.75.37-3.292-1.263-2.942-3.115l.536-2.839c.097-.512.335-.983.684-1.352l2.914-3.086Z"
+                                                                clip-rule="evenodd" />
+                                                            <path fill-rule="evenodd"
+                                                                d="M19.846 4.318a2.148 2.148 0 0 0-.437-.692 2.014 2.014 0 0 0-.654-.463 1.92 1.92 0 0 0-1.544 0 2.014 2.014 0 0 0-.654.463l-.546.578 2.852 3.02.546-.579a2.14 2.14 0 0 0 .437-.692 2.244 2.244 0 0 0 0-1.635ZM17.45 8.721 14.597 5.7 9.82 10.76a.54.54 0 0 0-.137.27l-.536 2.84c-.07.37.239.696.588.622l2.682-.567a.492.492 0 0 0 .255-.145l4.778-5.06Z"
+                                                                clip-rule="evenodd" />
+                                                        </svg>
+                                                        Daftar
+                                                    </a>
+                                                @endif
+                                            @break
+                                        @endswitch
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr class="bg-white border-b hover:bg-gray-50">
-                                <td class="px-6 py-4 text-center" colspan="8">
-                                    Tidak ada data yang dapat ditampilkan!
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            @empty
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-center" colspan="8">
+                                        Tidak ada data yang dapat ditampilkan!
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    </section>
-@endsection
-
-@push('css')
-    <style>
-        #pagination nav div.flex {
-            font-size: 12px !important;
-            font-weight: 100 !important;
-        }
-
-        #pagination nav div div p {
-            font-size: 10pt !important;
-            margin-right: 10px !important;
-        }
-
-        #pagination nav div div span,
-        #pagination nav div div a {
-            border-radius: 4px !important;
-            margin-left: 1px !important;
-        }
-
-        #pagination nav div a,
-        #pagination nav div span {
-            font-size: 12px !important;
-            border-radius: 4px !important;
-        }
-    </style>
-@endpush
+        </section>
+    @endsection

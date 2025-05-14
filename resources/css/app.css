@@ -77,16 +77,19 @@
         @apply -mt-[1px] block text-red-500 text-[11px];
     }
     .input-ct {
-        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2.5 lg:py-2;
+        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2 py-1.5;
     }
     .input-error-ct {
-        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2.5 lg:py-2;
+        @apply border-gray-300 text-sm rounded outline-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 block w-full text-gray-900 bg-gray-50 border px-2 py-1.5;
     }
 
+    .btn-danger {
+        @apply py-1 px-3 rounded bg-red-500 hover:bg-red-600 hover:shadow-md focus:bg-red-700 focus:ring-2 focus:ring-red-200 text-white;
+    }
     .btn-primary {
         @apply py-1 px-3 rounded text-sm md:text-base bg-primary-500 hover:bg-primary-600 hover:shadow-md focus:bg-primary-700 focus:ring-2 focus:ring-primary-200 text-white;
     }
     .btn-secondary {
-        @apply py-1 px-3 rounded text-sm md:text-base bg-gray-500 hover:bg-gray-600 hover:shadow-md focus:bg-gray-700 focus:ring-2 focus:ring-gray-200 text-white;
+        @apply py-1 px-4 bg-gray-500 text-white rounded text-sm md:text-base hover:shadow-md hover:bg-gray-600 focus:bg-gray-700 focus:ring-2 focus:ring-gray-200;
     }
 }

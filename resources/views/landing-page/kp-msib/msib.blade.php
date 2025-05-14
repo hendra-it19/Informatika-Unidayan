@@ -5,7 +5,7 @@
     <main class="min-h-[100vh]">
 
         <x-hero-section judul="MSIB Kampus Merdeka" foto="{{ asset('assets/image/hero/mbkm.webp') }}"
-            link="{{ url('/msib') }}" />
+            link="{{ url('/kampus-merdeka') }}" />
 
         <section class="mb-10 mt-5 lg:mt-10 relative">
             <div class="custom-container mx-auto flex flex-col lg:flex-row justify-between">

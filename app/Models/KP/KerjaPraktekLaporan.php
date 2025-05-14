@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\KP;
 
 use App\Models\KP\KerjaPraktek;
+use App\Models\Mahasiswa;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

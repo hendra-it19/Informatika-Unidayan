@@ -4,7 +4,8 @@
     @inject('carbon', 'Carbon\carbon')
     <main class="min-h-[100vh]">
 
-        <x-hero-section judul="Kerja Praktek" foto="{{ asset('assets/image/hero/kp.webp') }}" link="{{ url('/kp') }}" />
+        <x-hero-section judul="Kerja Praktek" foto="{{ asset('assets/image/hero/kp.webp') }}"
+            link="{{ url('/kerja-praktek') }}" />
 
         <section class="mb-10 mt-5 lg:mt-10 relative">
             <div class="custom-container mx-auto flex flex-col lg:flex-row justify-between">

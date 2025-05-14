@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('surat_penarikan')->nullable()->unique();
             $table->string('balasan_surat_penarikan')->nullable()->unique();
             $table->string('laporan_akhir')->nullable()->unique();
+            $table->string('diusulkan_oleh');
             $table->timestamps();
         });
     }
