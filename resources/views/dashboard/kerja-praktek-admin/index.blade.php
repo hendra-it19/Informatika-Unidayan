@@ -53,7 +53,7 @@
                     </div>
                     <button type="submit" class="hidden">Submit</button>
                 </form>
-                <a href="{{ route('admin-kp.create') }}">
+                {{-- <a href="{{ route('admin-kp.create') }}">
                     <x-input.button-add text="Tambah">
                         <svg class="me-2 h-3.5 aspect-square" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                             width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -65,7 +65,7 @@
                                 clip-rule="evenodd" />
                         </svg>
                     </x-input.button-add>
-                </a>
+                </a> --}}
             </div>
             <div class="relative overflow-x-auto shadow-sm rounded my-4">
                 <table style="table-layout: responsive" class="w-full text-sm text-left rtl:text-right text-gray-500">

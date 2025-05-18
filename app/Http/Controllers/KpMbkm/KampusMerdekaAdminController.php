@@ -9,28 +9,54 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use PHPUnit\Framework\Attributes\BackupGlobals;
 
-class KampusMerdekaMahasiswaController extends Controller
+class KampusMerdekaAdminController extends Controller
 {
     private $path = 'upload/kampus-merdeka/';
     private $paginate = 7;
 
-    public function index()
+    public function index(Request $request)
     {
+
         $cek_tunggu = KampusMerdeka::where('user_id', Auth::user()->id)
             ->where('status', 'menunggu')
             ->first();
         $cek_terima = KampusMerdeka::where('user_id', Auth::user()->id)
             ->where('status', 'diterima')
             ->count();
-        $dataPendaftaran = KampusMerdeka::with('user')
-            ->where('user_id', Auth::user()->id)->latest('id')->get();
-        return view('dashboard.kampus-merdeka-mahasiswa.index', [
+        $tahun = KampusMerdeka::distinct()
+            ->selectRaw('YEAR(tanggal_mulai) as tahun')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        $data = KampusMerdeka::when($request->keyword, function ($query, $keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('mitra', 'LIKE', '%' . $keyword . '%')
+                    ->orWhereHas('user', function ($qUser) use ($keyword) {
+                        $qUser->where('nama', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('identitas', 'LIKE', '%' . $keyword . '%');
+                    });
+            });
+        })
+            ->when($request->tahun, function ($query, $tahun) {
+                $query->whereYear('tanggal_mulai', $tahun);
+            })
+            ->when($request->status, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate($this->paginate);
+        return view('dashboard.kampus-merdeka-admin.index', [
             'judulHalaman' => 'Kampus Merdeka',
-            'data' => $dataPendaftaran,
+            'data' => $data,
             'data_tunggu' => empty($cek_tunggu) ? false : true,
             'data_terima' => $cek_terima,
-        ]);
+            'filter_status' => $request->status ?? '',
+            'filter_keyword' => $request->keyword ?? '',
+            'filter_tahun' => $request->tahun ?? '',
+            'tahun' => $tahun,
+        ])->with('i', (request()->input('page', 1) - 1) * $this->paginate);
     }
 
     public function daftar()
@@ -45,7 +71,7 @@ class KampusMerdekaMahasiswaController extends Controller
             notify()->warning('Sudah mencapai batas atau ada kegiatan masih pending', 'Perhatian!');
             return back();
         }
-        return view('dashboard.kampus-merdeka-mahasiswa.daftar', [
+        return view('dashboard.kampus-merdeka-admin.daftar', [
             'judulHalaman' => 'Kampus Merdeka',
 
         ]);
@@ -98,6 +124,38 @@ class KampusMerdekaMahasiswaController extends Controller
         unlink($data->persetujuan_kampus);
         $data->delete();
         notify()->success('Berhasil membatalkan pendaftaran!', 'Berhasil!');
+    }
+
+
+    public function terimaPendaftaran($msib)
+    {
+        $msib = KampusMerdeka::find($msib);
+        if (empty($msib)) {
+            notify()->warning('Data yang diterima tidak ditemukan', 'Gagal!');
+            return back();
+        }
+        $msib->update([
+            'status' => 'diterima',
+        ]);
+        notify()->success('Pendaftaran telah diterima!', 'Berhasil!');
+        return back();
+    }
+
+    public function tolakPendaftaran(Request $request, $msib)
+    {
+        $msib = KampusMerdeka::find($msib);
+        if (empty($msib)) {
+            notify()->warning('Data yang diterima tidak ditemukan', 'Gagal!');
+            return back();
+        }
+        $request->validate([
+            'keterangan' => ['required', 'string'],
+        ]);
+        $msib->update([
+            'status' => 'ditolak',
+            'keterangan' => $request->keterangan,
+        ]);
+        notify()->success('Pendaftaran telah ditolak!', 'Berhasil!');
         return back();
     }
 
@@ -165,12 +223,19 @@ class KampusMerdekaMahasiswaController extends Controller
             ->latest('tanggal')
             ->first();
 
-        return view('dashboard.kampus-merdeka-mahasiswa.detail', [
+        $tanggalMulai = Carbon::parse($msib->tanggal_mulai);
+        $tanggalSelesai = Carbon::parse($msib->tanggal_selesai);
+        $jumlahHari = $tanggalMulai->diffInDays($tanggalSelesai) + 1;
+        $jumlahLaporan = KampusMerdekaLaporan::where('kampus_merdeka_id', $msib->id)->count();
+        $sisaLaporan = $jumlahHari - $jumlahLaporan;
+
+        return view('dashboard.kampus-merdeka-admin.detail', [
             'judulHalaman' => 'Laporan MSIB',
             'msib' => $msib,
             'laporanStatus' => $paginatedLaporanStatus,
             'isiSekarang' => collect($isiSekarang),
             'laporanTerakhir' => $laporanTerakhir,
+            'sisaLaporan' => $sisaLaporan,
         ]);
     }
 
@@ -199,64 +264,5 @@ class KampusMerdekaMahasiswaController extends Controller
         }
 
         return collect($daftar)->sortBy('tanggal')->values()->all();
-    }
-
-
-    public function simpanLaporan(Request $request, $msib)
-    {
-        $KampusMerdeka = KampusMerdeka::find($msib);
-        if (empty($KampusMerdeka)) {
-            notify()->success('Gagal simpan laporan karena Kegiatan tidak ditemukan!', 'Gagal!');
-            return back();
-        }
-        $request->validate([
-            'tanggal' => ['required', 'date'],
-            'jenis_laporan' => ['required', 'in:harian,mingguan'],
-            'kehadiran' => ['required', 'in:hadir,sakit,izin,alpa,libur'],
-            'deskripsi' => ['required', 'string'],
-        ]);
-        KampusMerdekaLaporan::create([
-            'kampus_merdeka_id' => $KampusMerdeka->id,
-            'tanggal' => $request->tanggal,
-            'jenis_laporan' => $request->jenis_laporan,
-            'kehadiran' => $request->kehadiran,
-            'deskripsi' => $request->deskripsi,
-        ]);
-        notify()->success('Laporan berhasil dibuat', 'Berhasil!');
-        return back();
-    }
-
-    public function updateBerkas(Request $request, $msib)
-    {
-        $kampusMerdeka = KampusMerdeka::find($msib);
-        if (empty($kampusMerdeka)) {
-            notify()->success('Gagal simpan berkas karena Kegiatan tidak ditemukan!', 'Gagal!');
-            return back();
-        }
-        $request->validate([
-            'laporan_akhir' => ['nullable', 'file', 'mimes:pdf', 'max:10124'],
-        ]);
-
-        $laporan_akhir = $request->file('laporan_akhir');
-        if (empty($laporan_akhir)) {
-            $laporan_akhir = $kampusMerdeka->laporan_akhir;
-        } else {
-            $name = Auth::user()->identitas . '-' . $kampusMerdeka->id . '-laporan-akhir.' . $laporan_akhir->getClientOriginalExtension();
-            $path = $this->path . Carbon::parse($request->tanggal_mulai)->format('Y') . '/';
-            if (empty($kampusMerdeka->laporan_akhir)) {
-                $laporan_akhir->move($path, $name);
-            } else {
-                unlink($kampusMerdeka->laporan_akhir);
-                $laporan_akhir->move($path, $name);
-            }
-            $laporan_akhir = $path . $name;
-        }
-
-        $kampusMerdeka->update([
-            'laporan_akhir' => $laporan_akhir,
-        ]);
-
-        notify()->success('Laporan anda berhasil diupload', 'Berhasil!');
-        return back();
     }
 }

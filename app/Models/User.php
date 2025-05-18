@@ -8,7 +8,7 @@ use App\Models\Alumni\Alumni;
 use App\Models\Kegiatan\KategoriKegiatanProdi;
 use App\Models\Kegiatan\KegiatanProdi;
 use App\Models\Kp\KerjaPraktek;
-use App\Models\Mbkm\KampusMerdeka;
+use App\Models\MSIB\KampusMerdeka;
 use App\Models\Organisasi\Organisasi;
 use App\Models\TugasAkhir\BimbinganTugasAkhir;
 use App\Models\TugasAkhir\HasilPemeriksaanTa;
@@ -142,8 +142,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(KerjaPraktek::class, 'mahasiswa_id', 'id');
     }
-    public function msib(): HasMany
+
+
+    public function kampusMerdeka(): HasMany
     {
-        return $this->hasMany(KampusMerdeka::class, 'mahasiswa_id', 'id');
+        return $this->hasMany(KampusMerdeka::class, 'user_id');
     }
 }

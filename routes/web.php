@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Kegiatan\KategoriKegiatanProdiController;
 use App\Http\Controllers\Kegiatan\KegiatanProdiController;
+use App\Http\Controllers\KpMbkm\KampusMerdekaAdminController;
 use App\Http\Controllers\KpMbkm\KampusMerdekaMahasiswaController;
 use App\Http\Controllers\KpMbkm\KerjaPraktekAdminController;
 use App\Http\Controllers\KpMbkm\KerjaPraktekMahasiswaController;
@@ -23,8 +24,6 @@ use App\Http\Controllers\TugasAkhir\BimbinganTugasAkhirController;
 use App\Http\Controllers\TugasAkhir\PemeriksaanTugasAkhirController;
 use App\Http\Controllers\TugasAkhir\PengajuanTugasAkhirController;
 use App\Http\Controllers\TugasAkhir\TugasAkhirController;
-use App\Models\KP\KerjaPraktekMahasiswa;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LandingPageController::class, 'beranda']);
@@ -96,12 +95,17 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
             Route::put('/{id}/terima', [KerjaPraktekAdminController::class, 'terima'])->name('admin-kp.terima');
             Route::put('/{id}/tolak', [KerjaPraktekAdminController::class, 'tolak'])->name('admin-kp.tolak');
             Route::get('/{kp}/kp/{mhs}/mhs', [KerjaPraktekAdminController::class, 'laporanMahasiswa'])->name('admin-kp.laporan-mahasiswa');
-            Route::get('/create', [KerjaPraktekAdminController::class, 'create'])->name('admin-kp.create');
+            // Route::get('/create', [KerjaPraktekAdminController::class, 'create'])->name('admin-kp.create');
         });
 
         Route::prefix('msib')->group(function () {
-            Route::get('/', [KerjaPraktekAdminController::class, 'index'])->name('admin-msib.index');
-            Route::get('/{id}/detail', [KerjaPraktekAdminController::class, 'detail'])->name('admin-msib.detail');
+            Route::get('/', [KampusMerdekaAdminController::class, 'index'])->name('admin-msib.index');
+            Route::get('/daftar', [KampusMerdekaAdminController::class, 'daftar'])->name('admin-msib.daftar');
+            Route::post('/post-daftar', [KampusMerdekaAdminController::class, 'postDaftar'])->name('admin-msib.post-daftar');
+            Route::delete('/{msib}/batal-daftar', [KampusMerdekaAdminController::class, 'batalDaftar'])->name('admin-msib.batal-daftar');
+            Route::get('/{msib}/laporan', [KampusMerdekaAdminController::class, 'detail'])->name('admin-msib.detail');
+            Route::put('/{msib}/terima-pendaftaran', [KampusMerdekaAdminController::class, 'terimaPendaftaran'])->name('admin-msib.terima-pendaftaran');
+            Route::put('/{msib}/tolak-pendaftaran', [KampusMerdekaAdminController::class, 'tolakPendaftaran'])->name('admin-msib.tolak-pendaftaran');
         });
     });
 
@@ -131,6 +135,12 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
 
         Route::prefix('kampus-merdeka')->group(function () {
             Route::get('/', [KampusMerdekaMahasiswaController::class, 'index'])->name('kampus-merdeka.index');
+            Route::get('/daftar', [KampusMerdekaMahasiswaController::class, 'daftar'])->name('kampus-merdeka.daftar');
+            Route::post('/post-daftar', [KampusMerdekaMahasiswaController::class, 'postDaftar'])->name('kampus-merdeka.post-daftar');
+            Route::delete('/{msib}/batal-daftar', [KampusMerdekaMahasiswaController::class, 'batalDaftar'])->name('kampus-merdeka.batal-daftar');
+            Route::get('/{msib}/detail', [KampusMerdekaMahasiswaController::class, 'detail'])->name('kampus-merdeka.detail');
+            Route::put('/{msib}/update-berkas', [KampusMerdekaMahasiswaController::class, 'updateBerkas'])->name('kampus-merdeka.update-berkas');
+            Route::post('/{msib}/simpan-laporan', [KampusMerdekaMahasiswaController::class, 'simpanLaporan'])->name('kampus-merdeka.simpan-laporan');
         });
     });
 

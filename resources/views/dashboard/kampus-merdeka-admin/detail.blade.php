@@ -18,7 +18,7 @@
                     </a>
                 </li>
                 <li aria-current="page">
-                    <a href="{{ route('admin-kp.index') }}"
+                    <a href="{{ route('kerja-praktek.index') }}"
                         class="inline-flex items-center font-medium text-gray-700 hover:text-primary-600">
                         <svg class="rtl:rotate-180  w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 6 10">
@@ -26,20 +26,7 @@
                                 d="m1 9 4-4-4-4" />
                         </svg>
                         <span class="ms-1 font-medium">
-                            Kerja Praktek
-                        </span>
-                    </a>
-                </li>
-                <li aria-current="page">
-                    <a href="{{ route('admin-kp.detail', $kerjaPraktek->id) }}"
-                        class="inline-flex items-center font-medium text-gray-700 hover:text-primary-600">
-                        <svg class="rtl:rotate-180  w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            fill="none" viewBox="0 0 6 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="m1 9 4-4-4-4" />
-                        </svg>
-                        <span class="ms-1 font-medium">
-                            {{ $kerjaPraktek->mitra }}
+                            Kampus Merdeka
                         </span>
                     </a>
                 </li>
@@ -51,7 +38,7 @@
                                 d="m1 9 4-4-4-4" />
                         </svg>
                         <span class="ms-1 font-medium text-gray-500 md:ms-2 capitalize">
-                            {{ $mahasiswa->user->identitas }}
+                            {{ $msib->mitra }}
                         </span>
                     </div>
                 </li>
@@ -62,8 +49,8 @@
         <div class="px-4 pb-6 overflow-hidden pt-4 shadow bg-white rounded relative">
 
             @php
-                $tgl_mulai = $carbon::parse($kerjaPraktek->tanggal_mulai);
-                $tgl_selesai = $carbon::parse($kerjaPraktek->tanggal_selesai);
+                $tgl_mulai = $carbon::parse($msib->tanggal_mulai);
+                $tgl_selesai = $carbon::parse($msib->tanggal_selesai);
                 $tgl_sekarang = $carbon::now();
                 $laporan_akhir = false;
                 $laporanRutin = false;
@@ -71,26 +58,30 @@
 
             <divc class="absolute top-0 left-0 right-0 w-full flex items-center justify-center">
                 @if ($tgl_sekarang >= $tgl_mulai)
-                    @if ($tgl_sekarang >= $tgl_selesai)
+                    @if ($tgl_sekarang > $tgl_selesai)
                         @php
-                            $laporan_akhir = true;
                             if (empty($laporanTerakhir)) {
-                                $laporanTerakhir = $carbon::now();
+                                $laporanTerakhir = $tgl_mulai;
                             } else {
                                 $laporanTerakhir = $laporanTerakhir->tanggal;
                             }
-                            if ($carbon::parse($laporanTerakhir) <= $tgl_selesai) {
+                            if ($carbon::parse($laporanTerakhir) < $tgl_selesai) {
                                 $laporanRutin = true;
+                                $laporan_akhir = false;
+                            } elseif ($carbon::parse($laporanTerakhir) == $tgl_selesai) {
+                                $laporanRutin = true;
+                                $laporan_akhir = true;
                             } else {
                                 $laporanRutin = false;
+                                $laporan_akhir = false;
                             }
                         @endphp
-                        @if ($kerjaPraktek->laporan_akhir)
+                        @if ($msib->laporan_akhir)
                             <div class="py-1 px-4 text-xs md:text-sm rounded-b-md shadow-md text-white bg-green-500">
                                 Kegiatan Sudah Selesai</div>
                         @else
                             <div class="py-1 px-4 text-xs md:text-sm rounded-b-md shadow-md text-white bg-yellow-500">
-                                Laporan Akhir Kelompok
+                                Laporan Akhir
                                 Belum Terisi</div>
                         @endif
                     @else
@@ -105,11 +96,12 @@
                         Dimulai</div>
                     @php
                         $laporanRutin = false;
+                        $laporan_akhir = false;
                     @endphp
                 @endif
             </divc>
 
-            <a href="{{ route('admin-kp.detail', $kerjaPraktek->id) }}"
+            <a href="{{ route('kerja-praktek.index', $msib->id) }}"
                 class="btn-secondary mb-4 flex item-center gap-1 w-fit text-sm">
                 <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                     fill="none" viewBox="0 0 24 24">
@@ -123,60 +115,38 @@
                 class="grid grid-cols-1 gap-2 mb-5 md:grid-cols-2 items-start place-items-start text-xs md:text-sm text-nowrap">
                 <div class="flex gap-3">
                     <div>Waktu Kegiatan</div>
-                    <div> : {{ $carbon::parse($kerjaPraktek->tanggal_mulai)->format('d-m-Y') }} Sampai
-                        {{ $carbon::parse($kerjaPraktek->tanggal_selesai)->format('d-m-Y') }}</div>
+                    <div> : {{ $carbon::parse($msib->tanggal_mulai)->format('d-m-Y') }} Sampai
+                        {{ $carbon::parse($msib->tanggal_selesai)->format('d-m-Y') }}</div>
                 </div>
                 <div class="flex gap-3">
                     <div>Laporan Akhir</div>
                     <div> :
-                        @if (empty($kerjaPraktek->laporan_akhir))
+                        @if (empty($msib->laporan_akhir))
                             <span class="capitalize text-gray-600 italic text-xs">Belum dilengkapi</span>
                         @else
-                            <a href="{{ asset($kerjaPraktek->laporan_akhir) }}" target="_blank"
+                            <a href="{{ asset($msib->laporan_akhir) }}" target="_blank"
                                 class="text-blue-500 underline italic">Lihat</a>
                         @endif
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <div>Surat Pengantar</div>
+                    <div>Bukti Penerimaan</div>
                     <div> :
-                        @if (empty($kerjaPraktek->surat_pengantar))
+                        @if (empty($msib->bukti_penerimaan))
                             <span class="capitalize text-gray-600 italic text-xs">Belum dilengkapi</span>
                         @else
-                            <a href="{{ asset($kerjaPraktek->surat_pengantar) }}" target="_blank"
+                            <a href="{{ asset($msib->bukti_penerimaan) }}" target="_blank"
                                 class="text-blue-500 underline italic">Lihat</a>
                         @endif
                     </div>
                 </div>
                 <div class="flex gap-3">
-                    <div>Balasan Surat Pengantar</div>
+                    <div>Persetujuan Kampus</div>
                     <div> :
-                        @if (empty($kerjaPraktek->balasan_surat_pengantar))
+                        @if (empty($msib->persetujuan_kampus))
                             <span class="capitalize text-gray-600 italic text-xs">Belum dilengkapi</span>
                         @else
-                            <a href="{{ asset($kerjaPraktek->balasan_surat_pengantar) }}" target="_blank"
-                                class="text-blue-500 underline italic">Lihat</a>
-                        @endif
-                    </div>
-                </div>
-                <div class="flex gap-3">
-                    <div>Surat Penarikan</div>
-                    <div> :
-                        @if (empty($kerjaPraktek->surat_penarikan))
-                            <span class="capitalize text-gray-600 italic text-xs">Belum dilengkapi</span>
-                        @else
-                            <a href="{{ asset($kerjaPraktek->surat_penarikan) }}" target="_blank"
-                                class="text-blue-500 underline italic">Lihat</a>
-                        @endif
-                    </div>
-                </div>
-                <div class="flex gap-3">
-                    <div>Balasan Surat Penarikan</div>
-                    <div> :
-                        @if (empty($kerjaPraktek->balasan_surat_penarikan))
-                            <span class="capitalize text-gray-600 italic text-xs">Belum dilengkapi</span>
-                        @else
-                            <a href="{{ asset($kerjaPraktek->balasan_surat_penarikan) }}" target="_blank"
+                            <a href="{{ asset($msib->persetujuan_kampus) }}" target="_blank"
                                 class="text-blue-500 underline italic">Lihat</a>
                         @endif
                     </div>
@@ -186,12 +156,12 @@
 
             <div class="flex gap-5 justify-between md:justify-start items-start w-full border-b">
                 <h2 class="mb-2 font-semibold text-base md:text-lg text-gray-800">List Laporan Kerja Praktek</h2>
+                <div><small>(Belum Terisi - {{ $sisaLaporan }} Laporan)</small></div>
             </div>
 
 
             <div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-
                     @foreach ($laporanStatus as $item)
                         <div
                             class="p-4 rounded-xl shadow-md border @if ($item['isi_sekarang']) border-primary-500 @elseif($item['sudah_isi']) border-green-500 @else border-gray-300 @endif bg-white">
@@ -200,7 +170,7 @@
                                     {{ $carbon::parse($item['tanggal'])->translatedFormat('l, d M Y') }}</h3>
                                 @if ($item['sudah_isi'])
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded capitalize">
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-{{ $item['laporan']->kehadiran == 'hadir' ? 'green' : 'yellow' }}-700 bg-{{ $item['laporan']->kehadiran == 'hadir' ? 'green' : 'yellow' }}-100 rounded capitalize">
                                         <i class="fas fa-check mr-1"></i> {{ $item['laporan']->kehadiran }}
                                     </span>
                                 @elseif ($item['isi_sekarang'])
@@ -222,8 +192,24 @@
                                     {{ $item['laporan']->deskripsi }}
                                 </p>
                             @endif
+                            @if ($item['isi_sekarang'])
+                                <button data-modal-target="modal-isi-laporan-{{ $isiSekarang['tanggal'] }}"
+                                    data-modal-toggle="modal-isi-laporan-{{ $isiSekarang['tanggal'] }}"
+                                    class="mt-3 inline-flex items-center px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white text-xs rounded shadow">
+                                    <svg class="w-3 h-3 mr-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M18 5V4a1 1 0 0 0-1-1H8.914a1 1 0 0 0-.707.293L4.293 7.207A1 1 0 0 0 4 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5M9 3v4a1 1 0 0 1-1 1H4m11.383.772 2.745 2.746m1.215-3.906a2.089 2.089 0 0 1 0 2.953l-6.65 6.646L9 17.95l.739-3.692 6.646-6.646a2.087 2.087 0 0 1 2.958 0Z" />
+                                    </svg>
+                                    Isi Laporan
+                                </button>
+                            @endif
                         </div>
                     @endforeach
+                </div>
+                <div class="mt-4">
+                    {{ $laporanStatus->links() }}
                 </div>
             </div>
 
