@@ -13,7 +13,7 @@
     </div>
     @if ($tab == 'baru')
         <div class="mt-6">
-            <form wire:submit="simpanBaru" enctype="multipart/form-data">
+            <form wire:submit="simpanBaru" enctype="multipart/form-data" method="POST">
 
                 <h2 class="mb-3">Data Mitra</h2>
 
@@ -236,7 +236,7 @@
                 @endif
 
 
-                <form enctype="multipart/form-data" wire:submit="simpanLama">
+                <form enctype="multipart/form-data" wire:submit="simpanLama" method="POST">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
                         <div>
                             <label for="sks_tempuh" class="label-ct">Jumlah SKS Tempuh</label>
