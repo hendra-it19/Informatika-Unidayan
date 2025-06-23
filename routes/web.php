@@ -109,10 +109,13 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
         });
     });
 
+
+    // dosen, kaprodi, admin
     Route::middleware(['UserHasRole:dosen,kaprodi,admin'])->group(function () {
         Route::resource('pemeriksaan-ta', PemeriksaanTugasAkhirController::class);
     });
 
+    // dosen, kaprodi, mahasiswa
     Route::middleware(['UserHasRole:dosen,kaprodi,mahasiswa'])->group(function () {
         Route::resource('bimbingan-ta', BimbinganTugasAkhirController::class);
         Route::get('bimbingan-ta/{id}/chat', [BimbinganTugasAkhirController::class, 'chat'])->name('bimbingan-ta.chat');
@@ -149,6 +152,7 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
         Route::resource('share-jobs', ShareJobsController::class);
     });
 
+    // organisasi, kaprodi, admin
     Route::middleware(['UserHasRole:organisasi,kaprodi,admin'])->group(function () {
         Route::resource('postingan-organisasi', KegiatanOrganisasiController::class);
     });

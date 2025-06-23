@@ -22,4 +22,9 @@ class KampusMerdeka extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function dosen(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dosen_id', 'id');
+    }
 }

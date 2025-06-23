@@ -50,3 +50,12 @@
         </div>
     </section>
 @endsection
+
+
+@push('css')
+    @livewireStyles
+@endpush
+
+@push('js')
+    @livewireScripts
+@endpush

@@ -148,4 +148,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(KampusMerdeka::class, 'user_id');
     }
+
+
+    // dosen
+    public function bimbinganKerjaPraktek(): HasMany
+    {
+        return $this->hasMany(KerjaPraktek::class, 'dosen_id', 'id');
+    }
+    public function bimbinganKampusMerdeka(): HasMany
+    {
+        return $this->hasMany(KampusMerdeka::class, 'dosen_id', 'id');
+    }
 }

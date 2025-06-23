@@ -3,7 +3,9 @@
 namespace App\Models\KP;
 
 use App\Models\Mahasiswa;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -21,5 +23,10 @@ class KerjaPraktek extends Model
     public function pendaftaran(): HasMany
     {
         return $this->hasMany(KerjaPraktekPendaftaran::class, 'kerja_praktek_id');
+    }
+
+    public function dosen(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dosen_id', 'id');
     }
 }
