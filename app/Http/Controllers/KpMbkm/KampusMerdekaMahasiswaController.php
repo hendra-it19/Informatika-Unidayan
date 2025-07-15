@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class KampusMerdekaMahasiswaController extends Controller
 {
@@ -101,8 +102,19 @@ class KampusMerdekaMahasiswaController extends Controller
         return back();
     }
 
-    public function detail($msib)
+    public function detail(Request $request, $msib)
     {
+
+        $tab = $request->tab;
+        if (empty($tab)) {
+            $tab = 'harian';
+        }
+
+        if (!in_array($tab, ['harian', 'mingguan'])) {
+            notify()->warning('Tab tidak ditemukan', 'Perhatian!');
+            return back();
+        }
+
         $msib = KampusMerdeka::find($msib);
         if (empty($msib)) {
             notify()->warning('Data tidak ditemukan', 'Perhatian!');
@@ -148,18 +160,36 @@ class KampusMerdekaMahasiswaController extends Controller
             }
         }
 
+
+
         // Pagination manual untuk array laporanStatus
         $laporanStatusCollection = collect($laporanStatus)->sortByDesc('tanggal')->values();
-        $perPage = $this->paginate;
-        $currentPage = request()->get('page', 1);
-        $currentItems = $laporanStatusCollection->slice(($currentPage - 1) * $perPage, $perPage)->values();
-        $paginatedLaporanStatus = new LengthAwarePaginator(
-            $currentItems,
-            $laporanStatusCollection->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+
+        if ($tab == 'harian') {
+            $laporanHarian = collect($laporanStatus)->where('jenis_laporan', 'harian')->sortByDesc('tanggal')->values();
+            $perPage = 6;
+            $currentPage = request()->get('page', 1);
+            $currentItems = $laporanHarian->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $paginatedLaporanStatus = new LengthAwarePaginator(
+                $currentItems,
+                $laporanHarian->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        } else {
+            $laporanMingguan = collect($laporanStatus)->where('jenis_laporan', 'mingguan')->sortByDesc('tanggal')->values();
+            $perPage = 4;
+            $currentPage = request()->get('page', 1);
+            $currentItems = $laporanMingguan->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $paginatedLaporanStatus = new LengthAwarePaginator(
+                $currentItems,
+                $laporanMingguan->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
 
         $laporanTerakhir = KampusMerdekaLaporan::where('kampus_merdeka_id', $msib->id)
             ->latest('tanggal')
@@ -171,6 +201,7 @@ class KampusMerdekaMahasiswaController extends Controller
             'laporanStatus' => $paginatedLaporanStatus,
             'isiSekarang' => collect($isiSekarang),
             'laporanTerakhir' => $laporanTerakhir,
+            'tab' => $tab,
         ]);
     }
 
@@ -180,6 +211,8 @@ class KampusMerdekaMahasiswaController extends Controller
         $tanggalMulai = Carbon::parse($mulai);
         $tanggalSelesai = Carbon::parse($selesai);
 
+        $weekCount = 1;
+
         $daftar = [];
 
         while ($tanggalMulai->lte($tanggalSelesai)) {
@@ -187,18 +220,29 @@ class KampusMerdekaMahasiswaController extends Controller
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'mingguan',
+                    'week_count' => $weekCount,
                 ];
+                $weekCount++;
             } else {
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'harian',
+                    'week_count' => $weekCount,
                 ];
             }
-
             $tanggalMulai->addDay();
         }
-
-        return collect($daftar)->sortBy('tanggal')->values()->all();
+        $daftar = collect($daftar)->sortBy('tanggal')->values()->all();
+        $cek = collect($daftar)->sortByDesc('tanggal')->first();
+        $cek_tgl = Carbon::parse($cek['tanggal']);
+        if ($cek_tgl->dayOfWeek() > 2) {
+            $daftar[] = [
+                'tanggal' => $cek_tgl->addDay(),
+                'jenis_laporan' => 'mingguan',
+                'week_count' => $cek['week_count'],
+            ];
+        }
+        return $daftar;
     }
 
 
@@ -214,14 +258,28 @@ class KampusMerdekaMahasiswaController extends Controller
             'jenis_laporan' => ['required', 'in:harian,mingguan'],
             'kehadiran' => ['required', 'in:hadir,sakit,izin,alpa,libur'],
             'deskripsi' => ['required', 'string'],
+            'file' => [$request->jenis_laporan == 'harian' ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx', 'max:2124'],
         ]);
-        KampusMerdekaLaporan::create([
+        $db = KampusMerdekaLaporan::create([
             'kampus_merdeka_id' => $KampusMerdeka->id,
             'tanggal' => $request->tanggal,
             'jenis_laporan' => $request->jenis_laporan,
             'kehadiran' => $request->kehadiran,
             'deskripsi' => $request->deskripsi,
         ]);
+        if ($request->jenis_laporan == 'mingguan') {
+            $fileUpload = null;
+            $file = $request->file('file');
+            if (isset($file)) {
+                $path = $this->path . 'laporan-mingguan/';
+                $name = $KampusMerdeka->id . '-' . Carbon::parse($request->tanggal)->format('dmy') . '.' . $file->getClientOriginalExtension();
+                $file->move($path, $name);
+                $fileUpload = $path . $name;
+            }
+            $db->update([
+                'file' => $fileUpload,
+            ]);
+        }
         notify()->success('Laporan berhasil dibuat', 'Berhasil!');
         return back();
     }

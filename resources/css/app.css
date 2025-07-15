@@ -92,4 +92,14 @@
     .btn-secondary {
         @apply py-1 px-4 bg-gray-500 text-white rounded text-sm md:text-base hover:shadow-md hover:bg-gray-600 focus:bg-gray-700 focus:ring-2 focus:ring-gray-200;
     }
+
+    .b-green {
+        @apply border-green-300;
+    }
+    .b-gray {
+        @apply border-gray-300;
+    }
+    .b-primary {
+        @apply border-primary-300;
+    }
 }

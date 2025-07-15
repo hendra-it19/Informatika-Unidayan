@@ -91,9 +91,14 @@ class DaftarKerjaPraktek extends Component
             throw $e;
         } catch (\Exception $e) {
             $this->loading = false;
-            DB::rollBack();
-            notify()->error('Gagal mendaftarkan kelompok KP', 'Error!');
-            return redirect()->route('kerja-praktek.index');
+            if (config('app.debug') == true) {
+                dd($e->getMessage());
+                return ($e->getMessage());
+            } else {
+                DB::rollBack();
+                notify()->error($e->getMessage(), 'Error!');
+                return redirect()->route('kerja-praktek.index');
+            }
         }
     }
 

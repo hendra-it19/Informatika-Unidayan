@@ -55,7 +55,29 @@
                 </svg>
                 Kembali
             </a>
+
+            <p class="mb-3">Kerja Praktek pada Mitra {{ $data->mitra }}
+
+                @if ($data->dosen_id)
+                    <span>dengan Dosen Pembimbing
+                        {{ $data->dosenPembimbing->nama }}</span>
+                    <button
+                        class="my-2 block text-white py-1 px-3 text-sm rounded bg-primary-500 hover:shadow hover:bg-primary-600 focus:bg-primary-700"
+                        data-modal-target="modal-terima" data-modal-toggle="modal-terima">Ubah Pembimbing</button>
+                    @include('dashboard.kerja-praktek-admin.modal-terima')
+                @else
+                    <span class="text-gray-500">belum ada Dosen Pembimbing</span>
+                    <button
+                        class="my-2 block text-white py-1 px-3 text-sm rounded bg-primary-500 hover:shadow hover:bg-primary-600 focus:bg-primary-700"
+                        data-modal-target="modal-terima" data-modal-toggle="modal-terima">
+                        Tentukan Pembimbing</button>
+                    @include('dashboard.kerja-praktek-admin.modal-terima')
+                @endif
+
+            </p>
+
             <h2 class="mb-3 font-semibold text-base text-gray-800">Daftar tunggu</h2>
+
             <div class="relative overflow-x-auto shadow-sm rounded">
                 <table style="table-layout: responsive" class="w-full text-sm text-left rtl:text-right text-gray-500">
                     <thead class="text-xs text-gray-100 bg-primary-500">
@@ -203,15 +225,16 @@
                                                 <a href="{{ route('admin-kp.laporan-mahasiswa', [
                                                     'kp' => $r->kerja_praktek_id,
                                                     'mhs' => $r->mahasiswa_id,
-                                                ]) }}"
-                                                    class="btn-primary py-0.5 px-2 flex items-center text-sm justify-center h-fit w-fit">
-                                                    <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                        width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path fill-rule="evenodd"
-                                                            d="M4.998 7.78C6.729 6.345 9.198 5 12 5c2.802 0 5.27 1.345 7.002 2.78a12.713 12.713 0 0 1 2.096 2.183c.253.344.465.682.618.997.14.286.284.658.284 1.04s-.145.754-.284 1.04a6.6 6.6 0 0 1-.618.997 12.712 12.712 0 0 1-2.096 2.183C17.271 17.655 14.802 19 12 19c-2.802 0-5.27-1.345-7.002-2.78a12.712 12.712 0 0 1-2.096-2.183 6.6 6.6 0 0 1-.618-.997C2.144 12.754 2 12.382 2 12s.145-.754.284-1.04c.153-.315.365-.653.618-.997A12.714 12.714 0 0 1 4.998 7.78ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-                                                            clip-rule="evenodd" />
-                                                    </svg>
-                                                    <span>Lihat Laporan</span>
+                                                ]) . '?laporan=harian' }}"
+                                                    class="btn-primary py-0.5 px-2 flex items-center text-xs justify-center h-fit w-fit">
+                                                    <span>Laporan Harian</span>
+                                                </a>
+                                                <a href="{{ route('admin-kp.laporan-mahasiswa', [
+                                                    'kp' => $r->kerja_praktek_id,
+                                                    'mhs' => $r->mahasiswa_id,
+                                                ]) . '?laporan=mingguan' }}"
+                                                    class="btn-primary py-0.5 px-2 flex items-center text-xs justify-center h-fit w-fit">
+                                                    <span>Laporan Mingguan</span>
                                                 </a>
                                             @break
 
@@ -245,3 +268,18 @@
             </div>
         </section>
     @endsection
+
+    @push('css')
+        <script src="{{ asset('vendor/jquery/jquery-3.7.1.min.js') }}"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
+        <script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
+    @endpush
+
+    @push('js')
+        <script>
+            $(document).ready(function() {
+                $('#dosen_pembimbing').select2();
+            });
+        </script>
+    @endpush

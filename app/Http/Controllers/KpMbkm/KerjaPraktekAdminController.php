@@ -8,6 +8,7 @@ use App\Models\KP\KerjaPraktekLaporan;
 use App\Models\KP\KerjaPraktekMahasiswa;
 use App\Models\KP\KerjaPraktekPendaftaran;
 use App\Models\Mahasiswa;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,13 @@ class KerjaPraktekAdminController extends Controller
     public function index(Request $request)
     {
         $keyword = $request->keyword ?? '';
-        $data = KerjaPraktek::with('kelompok', 'pendaftaran');
+        $data = KerjaPraktek::with('kelompok', 'pendaftaran', 'dosenPembimbing');
         if ($request->filled('keyword')) {
-            $data = $data->where('mitra', 'LIKE', "%{$request->keyword}");
+            $data = $data->where('mitra', 'LIKE', "%{$request->keyword}%")
+                ->orWhereHas('dosenPembimbing', function ($query) use ($keyword) {
+                    $query->where('nama', 'LIKE', "%{$keyword}%")
+                        ->orWhere('identitas', 'LIKE', "%{$keyword}%");
+                });
         }
         $data = $data->latest('id')->paginate($this->paginate);
         return view('dashboard.kerja-praktek-admin.index', [
@@ -52,13 +57,45 @@ class KerjaPraktekAdminController extends Controller
             'judulHalaman' => $data->mitra,
             'data' => $data,
             'uncheck' => $uncheck,
-            'check' => $check
+            'check' => $check,
+            'dosen' => User::where('role', 'dosen')->get(),
         ]);
+    }
+
+    public function updatePembimbing(Request $request, $id)
+    {
+        $data = KerjaPraktek::find($id);
+        if (empty($data)) {
+            return back();
+        }
+        $request->validate([
+            'dosen_pembimbing' => ['required', 'exists:users,id'],
+        ]);
+        try {
+            DB::beginTransaction();
+            $data->update([
+                'dosen_id' => $request->dosen_pembimbing,
+            ]);
+            DB::commit();
+            notify()->success('Berhasil mengubah pembimbing', 'Berhasil!');
+            return back();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            //throw $th;
+            return dd($th->getMessage());
+            notify()->warning($th->getMessage(), 'Gagal!');
+            return back();
+        }
     }
 
     public function terima($id)
     {
-        $data = KerjaPraktekPendaftaran::find($id);
+        $data = KerjaPraktekPendaftaran::with('kerjaPraktek')->find($id);
+        if (empty($data->kerjaPraktek->dosen_id)) {
+            notify()->warning('Pembimbing belum diisi!', 'Perhatian!');
+            return back();
+        }
+
         if (empty($data)) {
             return back();
         }
@@ -108,8 +145,17 @@ class KerjaPraktekAdminController extends Controller
         }
     }
 
-    public function laporanMahasiswa($kp, $mhs)
+    public function laporanMahasiswa(Request $request, $kp, $mhs)
     {
+        $r = $request->laporan;
+        if (!filled($r)) {
+            $r = 'harian'; // Default to 'harian' if not provided
+        }
+        if (!filled($r) | $r != 'harian' && $r != 'mingguan') {
+            notify()->warning('Parameter laporan tidak valid!', 'Perhatian!');
+            redirect()->back()->with('error', 'Parameter laporan tidak ditemukan!');
+        }
+
         $kerjaPraktek = KerjaPraktek::find($kp);
         $mahasiswa = Mahasiswa::with('user')->find($mhs);
 
@@ -159,20 +205,39 @@ class KerjaPraktekAdminController extends Controller
             }
         }
 
+        $laporanHarian = collect($laporanStatus)->where('jenis_laporan', 'harian')->sortByDesc('tanggal')->values()->all();
+        $laporanMingguan = collect($laporanStatus)->where('jenis_laporan', 'mingguan')->sortByDesc('tanggal')->values()->all();
+
         return view('dashboard.kerja-praktek-admin.laporan', [
             'judulHalaman' => 'Laporan KP',
             'kerjaPraktek' => $kerjaPraktek,
             'mahasiswa' => $mahasiswa,
-            'laporanStatus' => collect($laporanStatus)->sortByDesc('tanggal')->values()->all(),
+            'laporanStatus' => $r == 'harian' ? $laporanHarian : $laporanMingguan,
+            'laporan' => $r == 'harian' ? 'Harian' : 'Mingguan',
             'isiSekarang' => $isiSekarang, // kirim ke view
         ]);
     }
 
+    // public function update(Request $request, string $id)
+    // {
+    //     $data = KerjaPraktekLaporan::find($id);
+    //     if (empty($data)) {
+    //         notify()->warning('Laporan tidak ditemukan!', 'Perhatian!');
+    //         return back();
+    //     }
+    //     $data->update([
+    //         'review_at' => now(),
+    //     ]);
+    //     notify()->success('Laporan berhasil direview!', 'Berhasil!');
+    //     return back();
+    // }
 
     public function generateTanggalLaporan($mulai, $selesai)
     {
         $tanggalMulai = Carbon::parse($mulai);
         $tanggalSelesai = Carbon::parse($selesai);
+
+        $weekCount = 1;
 
         $daftar = [];
 
@@ -181,17 +246,28 @@ class KerjaPraktekAdminController extends Controller
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'mingguan',
+                    'week_count' => $weekCount,
                 ];
+                $weekCount++;
             } else {
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'harian',
+                    'week_count' => $weekCount,
                 ];
             }
-
             $tanggalMulai->addDay();
         }
-
-        return collect($daftar)->sortBy('tanggal')->values()->all();
+        $daftar = collect($daftar)->sortBy('tanggal')->values()->all();
+        $cek = collect($daftar)->sortByDesc('tanggal')->first();
+        $cek_tgl = Carbon::parse($cek['tanggal']);
+        if ($cek_tgl->dayOfWeek() > 2) {
+            $daftar[] = [
+                'tanggal' => $cek_tgl->addDay(),
+                'jenis_laporan' => 'mingguan',
+                'week_count' => $cek['week_count'],
+            ];
+        }
+        return $daftar;
     }
 }

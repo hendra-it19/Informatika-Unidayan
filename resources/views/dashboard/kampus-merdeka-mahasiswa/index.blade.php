@@ -55,6 +55,9 @@
                                 Mitra
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
+                                Dosen Pembimbing
+                            </th>
+                            <th scope="col" class="p-2 lg:p-3">
                                 Tanggal Mulai
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
@@ -82,6 +85,9 @@
                                 </th>
                                 <td class="p-2 lg:p-3 uppercase">
                                     {{ $r->mitra }}
+                                </td>
+                                <td class="p-2 lg:p-3">
+                                    {{ $r->dosenPembimbing->nama ?? 'Belum ditetapkan' }}
                                 </td>
                                 <td class="p-2 lg:p-3">
                                     {{ $carbon::parse($r->tanggal_mulai)->translatedFormat('l, d F Y') }}
@@ -151,9 +157,9 @@
                                                 @if (!$data_tunggu && $data_terima < 2)
                                                     <a href="{{ route('kampus-merdeka.daftar') }}"
                                                         class="btn-primary text-nowrap text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
-                                                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                                            width="24" height="24" fill="currentColor"
-                                                            viewBox="0 0 24 24">
+                                                        <svg class="w-4 h-4" aria-hidden="true"
+                                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                            fill="currentColor" viewBox="0 0 24 24">
                                                             <path fill-rule="evenodd"
                                                                 d="M11.32 6.176H5c-1.105 0-2 .949-2 2.118v10.588C3 20.052 3.895 21 5 21h11c1.105 0 2-.948 2-2.118v-7.75l-3.914 4.144A2.46 2.46 0 0 1 12.81 16l-2.681.568c-1.75.37-3.292-1.263-2.942-3.115l.536-2.839c.097-.512.335-.983.684-1.352l2.914-3.086Z"
                                                                 clip-rule="evenodd" />

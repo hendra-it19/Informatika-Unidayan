@@ -35,22 +35,9 @@
         <div class="px-4 py-6 shadow bg-white rounded">
 
             <div class="w-full lg:w-1/2">
-                <form action="{{ route('admin-msib.index') }}" method="get">
+                <form action="{{ route('review-kampus-merdeka.index') }}" method="get">
                     <div class="flex gap-2">
-                        <input type="text" name="keyword" value="{{ $filter_keyword }}" class="input-ct">
-                        <select name="tahun" class="input-ct">
-                            <option value="" {{ $filter_tahun == '' ? 'selected' : '' }}>Pilih tahun</option>
-                            @foreach ($tahun as $t => $value)
-                                <option value="{{ $value }}" {{ $filter_tahun == $value ? 'selected' : '' }}>
-                                    {{ $value }}</option>
-                            @endforeach
-                        </select>
-                        <select name="status" class="input-ct">
-                            <option value="">Pilih status</option>
-                            <option value="menunggu" {{ $filter_status == 'menunggu' ? 'selected' : '' }}>Tunggu</option>
-                            <option value="diterima" {{ $filter_status == 'diterima' ? 'selected' : '' }}>Terima</option>
-                            <option value="ditolak" {{ $filter_status == 'ditolak' ? 'selected' : '' }}>Tolak</option>
-                        </select>
+                        <input type="text" name="keyword" value="{{ $keyword }}" class="input-ct">
                     </div>
                     <div class="flex mt-2 gap-2">
                         <button type="submit" class="btn-primary flex items-center gap-2 py-0.5">
@@ -61,13 +48,6 @@
                             </svg>
                             Filter
                         </button>
-                        <a href="{{ route('admin-msib.index') }}" class="btn-secondary flex items-center gap-2 py-0.5">
-                            <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                                height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="m15 9-6 6m0-6 6 6m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                            Reset</a>
                     </div>
                 </form>
             </div>
@@ -156,38 +136,11 @@
                                     <div class="flex flex-col gap-2">
                                         @switch($r->status)
                                             @case('menunggu')
-                                                <div class="flex flex-col gap-1 w-full h-fit">
-                                                    <button data-modal-target="modal-terima-{{ $r->id }}"
-                                                        data-modal-toggle="modal-terima-{{ $r->id }}"
-                                                        class="btn-primary w-full text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
-                                                        <svg class="w-4 h-4" aria-hidden="true"
-                                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                            fill="currentColor" viewBox="0 0 24 24">
-                                                            <path fill-rule="evenodd"
-                                                                d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm13.707-1.293a1 1 0 0 0-1.414-1.414L11 12.586l-1.793-1.793a1 1 0 0 0-1.414 1.414l2.5 2.5a1 1 0 0 0 1.414 0l4-4Z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                        Terima
-                                                    </button>
-                                                    @include('dashboard.kampus-merdeka-admin.modal-terima')
-                                                    <button data-modal-target="modal-tolak-{{ $r->id }}"
-                                                        data-modal-toggle="modal-tolak-{{ $r->id }}"
-                                                        class="btn-danger py-0.5 px-2 flex items-center text-sm justify-evenly h-fit w-full">
-                                                        <svg class="w-4 h-4" aria-hidden="true"
-                                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                            fill="currentColor" viewBox="0 0 24 24">
-                                                            <path fill-rule="evenodd"
-                                                                d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                        <span>Tolak</span>
-                                                    </button>
-                                                    @include('dashboard.kampus-merdeka-admin.modal-tolak')
-                                                </div>
+                                                <span class="italic text-gray-500 text-sm">No Access</span>
                                             @break
 
                                             @case('diterima')
-                                                <a href="{{ route('admin-msib.detail', $r->id) . '?tab=harian' }}"
+                                                <a href="{{ route('review-kampus-merdeka.show', $r->id) }}"
                                                     class="btn-primary text-xs text-nowrap py-1 px-2 flex items-center justify-center h-fit gap-1">
                                                     <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                                         width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -203,21 +156,7 @@
                                             @break
 
                                             @case('ditolak')
-                                                <form action="{{ route('admin-msib.batal-daftar', $r->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('delete')
-                                                    <button onclick="return confirm('Yakin ingin menghapus pendaftaran?')"
-                                                        class="btn-danger text-sm py-0.5 px-2 flex items-center justify-center h-fit gap-1">
-                                                        <svg class="w-4 h-4" aria-hidden="true"
-                                                            xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                            fill="currentColor" viewBox="0 0 24 24">
-                                                            <path fill-rule="evenodd"
-                                                                d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm7.707-3.707a1 1 0 0 0-1.414 1.414L10.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L12 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L13.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L12 10.586 9.707 8.293Z"
-                                                                clip-rule="evenodd" />
-                                                        </svg>
-                                                        Hapus
-                                                    </button>
-                                                </form>
+                                                <span class="italic text-gray-500 text-sm">No Access</span>
                                             @break
                                         @endswitch
                                     </div>

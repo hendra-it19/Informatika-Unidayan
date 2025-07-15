@@ -34,7 +34,7 @@
 
         <div class="px-4 py-6 shadow bg-white rounded">
             <div class="w-full flex justify-between items-end">
-                <form action="{{ route('admin-kp.index') }}" method="GET">
+                <form action="{{ route('review-kerja-praktek.index') }}" method="GET">
                     <div class="flex items-center justify-between flex-column flex-wrap md:flex-row w-fit p-2">
                         <label for="table-search" class="sr-only">Search</label>
                         <div class="relative">
@@ -53,19 +53,6 @@
                     </div>
                     <button type="submit" class="hidden">Submit</button>
                 </form>
-                {{-- <a href="{{ route('admin-kp.create') }}">
-                    <x-input.button-add text="Tambah">
-                        <svg class="me-2 h-3.5 aspect-square" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                            width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd"
-                                d="M9 7V2.221a2 2 0 0 0-.5.365L4.586 6.5a2 2 0 0 0-.365.5H9Zm2 0V2h7a2 2 0 0 1 2 2v6.41A7.5 7.5 0 1 0 10.5 22H6a2 2 0 0 1-2-2V9h5a2 2 0 0 0 2-2Z"
-                                clip-rule="evenodd" />
-                            <path fill-rule="evenodd"
-                                d="M9 16a6 6 0 1 1 12 0 6 6 0 0 1-12 0Zm6-3a1 1 0 0 1 1 1v1h1a1 1 0 1 1 0 2h-1v1a1 1 0 1 1-2 0v-1h-1a1 1 0 1 1 0-2h1v-1a1 1 0 0 1 1-1Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </x-input.button-add>
-                </a> --}}
             </div>
             <div class="relative overflow-x-auto shadow-sm rounded my-4">
                 <table style="table-layout: responsive" class="w-full text-sm text-left rtl:text-right text-gray-500">
@@ -76,9 +63,6 @@
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
                                 Mitra
-                            </th>
-                            <th scope="col" class="p-2 lg:p-3">
-                                Dosen Pembimbing
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
                                 Tahun
@@ -115,9 +99,6 @@
                                 <th scope="row" class="p-2 lg:p-3 uppercase font-normal">
                                     <p class="line-clamp-2 hover:line-clamp-none"> {{ $r->mitra }}</p>
                                 </th>
-                                <th scope="row" class="p-2 lg:p-3 uppercase font-normal">
-                                    <p class=""> {{ $r->dosenPembimbing->nama ?? 'Belum ditentukan' }}</p>
-                                </th>
                                 <td class="p-2 lg:p-3 uppercase">
                                     {{ $r->tahun }}
                                 </td>
@@ -151,7 +132,7 @@
                                         class="font-semibold py-0.5 px-2 bg-green-500 text-white rounded-lg shadow-md">{{ count($r->kelompok) }}</span>
                                 </td>
                                 <td class="p-2 lg:p-3 relative">
-                                    <a href="{{ route('admin-kp.detail', $r->id) }}"
+                                    <a href="{{ route('review-kerja-praktek.show', $r->id) }}"
                                         class="btn-primary py-0.5 px-2 flex items-center text-sm justify-center h-fit w-fit">
                                         <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             width="24" height="24" fill="currentColor" viewBox="0 0 24 24">

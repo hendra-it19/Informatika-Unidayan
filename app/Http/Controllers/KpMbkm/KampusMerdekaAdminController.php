@@ -5,6 +5,7 @@ namespace App\Http\Controllers\KpMbkm;
 use App\Http\Controllers\Controller;
 use App\Models\MSIB\KampusMerdeka;
 use App\Models\MSIB\KampusMerdekaLaporan;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -30,11 +31,16 @@ class KampusMerdekaAdminController extends Controller
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
+
         $data = KampusMerdeka::when($request->keyword, function ($query, $keyword) {
             $query->where(function ($q) use ($keyword) {
                 $q->where('mitra', 'LIKE', '%' . $keyword . '%')
                     ->orWhereHas('user', function ($qUser) use ($keyword) {
                         $qUser->where('nama', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('identitas', 'LIKE', '%' . $keyword . '%');
+                    })
+                    ->orWhereHas('dosenPembimbing', function ($qDosen) use ($keyword) {
+                        $qDosen->where('nama', 'LIKE', '%' . $keyword . '%')
                             ->orWhere('identitas', 'LIKE', '%' . $keyword . '%');
                     });
             });
@@ -56,6 +62,7 @@ class KampusMerdekaAdminController extends Controller
             'filter_keyword' => $request->keyword ?? '',
             'filter_tahun' => $request->tahun ?? '',
             'tahun' => $tahun,
+            'dosen' => User::where('role', 'dosen')->get(),
         ])->with('i', (request()->input('page', 1) - 1) * $this->paginate);
     }
 
@@ -127,8 +134,11 @@ class KampusMerdekaAdminController extends Controller
     }
 
 
-    public function terimaPendaftaran($msib)
+    public function terimaPendaftaran(Request $request, $msib)
     {
+        $request->validate([
+            'dosen_pembimbing' => ['required', 'exists:users,id'],
+        ]);
         $msib = KampusMerdeka::find($msib);
         if (empty($msib)) {
             notify()->warning('Data yang diterima tidak ditemukan', 'Gagal!');
@@ -136,6 +146,7 @@ class KampusMerdekaAdminController extends Controller
         }
         $msib->update([
             'status' => 'diterima',
+            'dosen_id' => $request->dosen_pembimbing,
         ]);
         notify()->success('Pendaftaran telah diterima!', 'Berhasil!');
         return back();
@@ -159,8 +170,19 @@ class KampusMerdekaAdminController extends Controller
         return back();
     }
 
-    public function detail($msib)
+    public function detail(Request $request, $msib)
     {
+
+        $tab = $request->tab;
+        if (empty($tab)) {
+            $tab = 'harian';
+        }
+
+        if (!in_array($tab, ['harian', 'mingguan'])) {
+            notify()->warning('Tab tidak ditemukan', 'Perhatian!');
+            return back();
+        }
+
         $msib = KampusMerdeka::find($msib);
         if (empty($msib)) {
             notify()->warning('Data tidak ditemukan', 'Perhatian!');
@@ -187,7 +209,7 @@ class KampusMerdekaAdminController extends Controller
             $tglStr = $tanggal['tanggal']->toDateString();
             $terisi = $laporanTersimpan->has($tglStr);
 
-            $isi_sekarang = !$terisi && !$tanggalLaporanAktif && $tglStr <= $tanggalSekarang;
+            $isi_sekarang = !$terisi && !$tanggalLaporanAktif && Carbon::parse($tglStr) <= Carbon::parse($tanggalSekarang);
 
             $laporanStatus[] = [
                 'tanggal' => $tglStr,
@@ -208,16 +230,32 @@ class KampusMerdekaAdminController extends Controller
 
         // Pagination manual untuk array laporanStatus
         $laporanStatusCollection = collect($laporanStatus)->sortByDesc('tanggal')->values();
-        $perPage = $this->paginate;
-        $currentPage = request()->get('page', 1);
-        $currentItems = $laporanStatusCollection->slice(($currentPage - 1) * $perPage, $perPage)->values();
-        $paginatedLaporanStatus = new LengthAwarePaginator(
-            $currentItems,
-            $laporanStatusCollection->count(),
-            $perPage,
-            $currentPage,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+
+        if ($tab == 'harian') {
+            $laporanHarian = collect($laporanStatus)->where('jenis_laporan', 'harian')->sortByDesc('tanggal')->values();
+            $perPage = 6;
+            $currentPage = request()->get('page', 1);
+            $currentItems = $laporanHarian->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $paginatedLaporanStatus = new LengthAwarePaginator(
+                $currentItems,
+                $laporanHarian->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        } else {
+            $laporanMingguan = collect($laporanStatus)->where('jenis_laporan', 'mingguan')->sortByDesc('tanggal')->values();
+            $perPage = 4;
+            $currentPage = request()->get('page', 1);
+            $currentItems = $laporanMingguan->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            $paginatedLaporanStatus = new LengthAwarePaginator(
+                $currentItems,
+                $laporanMingguan->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
 
         $laporanTerakhir = KampusMerdekaLaporan::where('kampus_merdeka_id', $msib->id)
             ->latest('tanggal')
@@ -236,6 +274,7 @@ class KampusMerdekaAdminController extends Controller
             'isiSekarang' => collect($isiSekarang),
             'laporanTerakhir' => $laporanTerakhir,
             'sisaLaporan' => $sisaLaporan,
+            'tab' => $tab,
         ]);
     }
 
@@ -245,6 +284,8 @@ class KampusMerdekaAdminController extends Controller
         $tanggalMulai = Carbon::parse($mulai);
         $tanggalSelesai = Carbon::parse($selesai);
 
+        $weekCount = 1;
+
         $daftar = [];
 
         while ($tanggalMulai->lte($tanggalSelesai)) {
@@ -252,17 +293,28 @@ class KampusMerdekaAdminController extends Controller
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'mingguan',
+                    'week_count' => $weekCount,
                 ];
+                $weekCount++;
             } else {
                 $daftar[] = [
                     'tanggal' => $tanggalMulai->copy(),
                     'jenis_laporan' => 'harian',
+                    'week_count' => $weekCount,
                 ];
             }
-
             $tanggalMulai->addDay();
         }
-
-        return collect($daftar)->sortBy('tanggal')->values()->all();
+        $daftar = collect($daftar)->sortBy('tanggal')->values()->all();
+        $cek = collect($daftar)->sortByDesc('tanggal')->first();
+        $cek_tgl = Carbon::parse($cek['tanggal']);
+        if ($cek_tgl->dayOfWeek() > 2) {
+            $daftar[] = [
+                'tanggal' => $cek_tgl->addDay(),
+                'jenis_laporan' => 'mingguan',
+                'week_count' => $cek['week_count'],
+            ];
+        }
+        return $daftar;
     }
 }

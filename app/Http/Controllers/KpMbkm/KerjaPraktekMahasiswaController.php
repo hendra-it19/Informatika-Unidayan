@@ -55,8 +55,17 @@ class KerjaPraktekMahasiswaController extends Controller
         return back();
     }
 
-    public function laporan($kp)
+    public function laporan(Request $request, $kp)
     {
+        $r = $request->laporan;
+        if (!filled($r)) {
+            $r = 'harian'; // Default to 'harian' if not provided
+        }
+        if (!filled($r) | $r != 'harian' && $r != 'mingguan') {
+            notify()->warning('Parameter laporan tidak valid!', 'Perhatian!');
+            redirect()->back()->with('error', 'Parameter laporan tidak ditemukan!');
+        }
+
         $kerjaPraktek = KerjaPraktek::find($kp);
         if (empty($kerjaPraktek)) {
             return back();
@@ -96,7 +105,6 @@ class KerjaPraktekMahasiswaController extends Controller
 
             if ($isi_sekarang) {
                 $tanggalLaporanAktif = $tglStr;
-
                 // Buat isiSekarang menyimpan detail tanggal yang aktif
                 $isiSekarang = [
                     'tanggal' => $tglStr,
@@ -104,18 +112,23 @@ class KerjaPraktekMahasiswaController extends Controller
                 ];
             }
         }
+
         // return $isiSekarang;
         $laporanTerakhir = KerjaPraktekLaporan::where('mahasiswa_id', $mahasiswa->id)
             ->where('kerja_praktek_id', $kerjaPraktek->id)
             ->latest('tanggal')
             ->first();
+
+        $laporanHarian = collect($laporanStatus)->where('jenis_laporan', 'harian')->sortByDesc('tanggal')->values()->all();
+        $laporanMingguan = collect($laporanStatus)->where('jenis_laporan', 'mingguan')->sortByDesc('tanggal')->values()->all();
         return view('dashboard.kerja-praktek-mahasiswa.laporan', [
             'judulHalaman' => 'Laporan KP',
             'kerjaPraktek' => $kerjaPraktek,
             'mahasiswa' => $mahasiswa,
-            'laporanStatus' => collect($laporanStatus)->sortByDesc('tanggal')->values()->all(),
             'isiSekarang' =>  collect($isiSekarang), // kirim ke view
             'laporanTerakhir' => $laporanTerakhir,
+            'laporanStatus' => $r == 'harian' ? $laporanHarian : $laporanMingguan,
+            'laporan' => $r == 'harian' ? 'Harian' : 'Mingguan',
         ]);
     }
 
@@ -139,11 +152,18 @@ class KerjaPraktekMahasiswaController extends Controller
                     'jenis_laporan' => 'harian',
                 ];
             }
-
             $tanggalMulai->addDay();
         }
-
-        return collect($daftar)->sortBy('tanggal')->values()->all();
+        $daftar = collect($daftar)->sortBy('tanggal')->values()->all();
+        $cek = collect($daftar)->sortByDesc('tanggal')->first();
+        $cek = Carbon::parse($cek['tanggal']);
+        if ($cek->dayOfWeek() > 2) {
+            $daftar[] = [
+                'tanggal' => $cek->addDay(),
+                'jenis_laporan' => 'mingguan',
+            ];
+        }
+        return $daftar;
     }
 
 
@@ -159,8 +179,9 @@ class KerjaPraktekMahasiswaController extends Controller
             'jenis_laporan' => ['required', 'in:harian,mingguan'],
             'kehadiran' => ['required', 'in:hadir,sakit,izin,alpa,libur'],
             'deskripsi' => ['required', 'string'],
+            'file' => [$request->jenis_laporan == 'harian' ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx', 'max:2124'],
         ]);
-        KerjaPraktekLaporan::create([
+        $db = KerjaPraktekLaporan::create([
             'mahasiswa_id' => Auth::user()->mahasiswa->id,
             'kerja_praktek_id' => $kerjaPraktek->id,
             'tanggal' => $request->tanggal,
@@ -168,6 +189,18 @@ class KerjaPraktekMahasiswaController extends Controller
             'kehadiran' => $request->kehadiran,
             'deskripsi' => $request->deskripsi,
         ]);
+        if ($request->jenis_laporan == 'mingguan') {
+            $fileUpload = null;
+            $file = $request->file('file');
+            if (isset($file)) {
+                $path = $this->path . 'laporan-mingguan/';
+                $name = $kerjaPraktek->id . '-' . Carbon::parse($request->tanggal)->format('dmy') . '.' . $file->getClientOriginalExtension();
+                $file->move($path, $name);
+                $fileUpload = $path . $name;
+                $db->file = $fileUpload;
+                $db->save();
+            }
+        }
         notify()->success('Laporan berhasil dibuat', 'Berhasil!');
         return back();
     }

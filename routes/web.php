@@ -14,6 +14,8 @@ use App\Http\Controllers\KpMbkm\KampusMerdekaAdminController;
 use App\Http\Controllers\KpMbkm\KampusMerdekaMahasiswaController;
 use App\Http\Controllers\KpMbkm\KerjaPraktekAdminController;
 use App\Http\Controllers\KpMbkm\KerjaPraktekMahasiswaController;
+use App\Http\Controllers\KpMbkm\ReviewLaporanKPController;
+use App\Http\Controllers\KpMbkm\ReviewLaporanMsibController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\MitraController;
 use App\Http\Controllers\Organisasi\KegiatanOrganisasiController;
@@ -92,6 +94,7 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
         Route::prefix('kp')->group(function () {
             Route::get('/', [KerjaPraktekAdminController::class, 'index'])->name('admin-kp.index');
             Route::get('/{id}/detail', [KerjaPraktekAdminController::class, 'detail'])->name('admin-kp.detail');
+            Route::put('{id}/update-pembimbing', [KerjaPraktekAdminController::class, 'updatePembimbing'])->name('admin-kp.updatePembimbing');
             Route::put('/{id}/terima', [KerjaPraktekAdminController::class, 'terima'])->name('admin-kp.terima');
             Route::put('/{id}/tolak', [KerjaPraktekAdminController::class, 'tolak'])->name('admin-kp.tolak');
             Route::get('/{kp}/kp/{mhs}/mhs', [KerjaPraktekAdminController::class, 'laporanMahasiswa'])->name('admin-kp.laporan-mahasiswa');
@@ -113,6 +116,13 @@ Route::prefix('dashboard')->middleware(['auth'])->group(function () {
     // dosen, kaprodi, admin
     Route::middleware(['UserHasRole:dosen,kaprodi,admin'])->group(function () {
         Route::resource('pemeriksaan-ta', PemeriksaanTugasAkhirController::class);
+    });
+
+    // dosen, kaprodi,
+    Route::middleware(['UserHasRole:dosen,kaprodi'])->group(function () {
+        Route::resource('review-kerja-praktek', ReviewLaporanKPController::class);
+        Route::get('/review-kerja-praktek/{kp}/mahasiswa/{mahasiswa}', [ReviewLaporanKPController::class, 'laporan'])->name('review-kerja-praktek.laporan');
+        Route::resource('review-kampus-merdeka', ReviewLaporanMsibController::class);
     });
 
     // dosen, kaprodi, mahasiswa

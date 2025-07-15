@@ -24,7 +24,7 @@
                                 d="m1 9 4-4-4-4" />
                         </svg>
                         <span class="ms-1 font-medium text-gray-500 md:ms-2">
-                            Kerja Praktek
+                            Kegiatan Prodi
                         </span>
                     </div>
                 </li>
@@ -53,7 +53,7 @@
                     </div>
                     <button type="submit" class="hidden">Submit</button>
                 </form>
-                {{-- <a href="{{ route('admin-kp.create') }}">
+                <a href="{{ route('admin-kp.create') }}">
                     <x-input.button-add text="Tambah">
                         <svg class="me-2 h-3.5 aspect-square" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                             width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -65,9 +65,9 @@
                                 clip-rule="evenodd" />
                         </svg>
                     </x-input.button-add>
-                </a> --}}
+                </a>
             </div>
-            <div class="relative overflow-x-auto shadow-sm rounded my-4">
+            <div class="relative overflow-x-auto shadow-sm rounded mt-4">
                 <table style="table-layout: responsive" class="w-full text-sm text-left rtl:text-right text-gray-500">
                     <thead class="text-xs text-gray-100 bg-primary-500">
                         <tr>
@@ -76,9 +76,6 @@
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
                                 Mitra
-                            </th>
-                            <th scope="col" class="p-2 lg:p-3">
-                                Dosen Pembimbing
                             </th>
                             <th scope="col" class="p-2 lg:p-3">
                                 Tahun
@@ -115,9 +112,6 @@
                                 <th scope="row" class="p-2 lg:p-3 uppercase font-normal">
                                     <p class="line-clamp-2 hover:line-clamp-none"> {{ $r->mitra }}</p>
                                 </th>
-                                <th scope="row" class="p-2 lg:p-3 uppercase font-normal">
-                                    <p class=""> {{ $r->dosenPembimbing->nama ?? 'Belum ditentukan' }}</p>
-                                </th>
                                 <td class="p-2 lg:p-3 uppercase">
                                     {{ $r->tahun }}
                                 </td>
@@ -134,17 +128,8 @@
                                     {{ $r->diusulkan_oleh }}
                                 </td>
                                 <td class="p-2 lg:p-3 w-5">
-                                    <span class="font-semibold py-0.5 px-2 bg-yellow-500 text-white rounded-lg shadow-md">
-                                        @php
-                                            $count = 0;
-                                            foreach ($r->pendaftaran as $pendaftaran) {
-                                                if ($pendaftaran->status == 'menunggu') {
-                                                    $count++;
-                                                }
-                                            }
-                                        @endphp
-                                        {{ $count }}
-                                    </span>
+                                    <span
+                                        class="font-semibold py-0.5 px-2 bg-yellow-500 text-white rounded-lg shadow-md">{{ count($r->pendaftaran) }}</span>
                                 </td>
                                 <td class="p-2 lg:p-3">
                                     <span

@@ -18,7 +18,7 @@
                     </a>
                 </li>
                 <li aria-current="page">
-                    <a href="{{ route('admin-msib.index') }}"
+                    <a href="{{ route('review-kampus-merdeka.index') }}"
                         class="inline-flex items-center font-medium text-gray-700 hover:text-primary-600">
                         <svg class="rtl:rotate-180  w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                             fill="none" viewBox="0 0 6 10">
@@ -56,29 +56,24 @@
                 $laporanRutin = false;
             @endphp
 
-            <div class="absolute top-0 left-0 right-0 w-full flex items-center justify-center">
+            <divc class="absolute top-0 left-0 right-0 w-full flex items-center justify-center">
                 @if ($tgl_sekarang >= $tgl_mulai)
                     @if ($tgl_sekarang > $tgl_selesai)
                         @php
                             if (empty($laporanTerakhir)) {
-                                $laporanTerakhir = $carbon::now();
+                                $laporanTerakhir = $tgl_mulai;
                             } else {
                                 $laporanTerakhir = $laporanTerakhir->tanggal;
                             }
                             if ($carbon::parse($laporanTerakhir) < $tgl_selesai) {
                                 $laporanRutin = true;
-                                $lporan_akhir = false;
+                                $laporan_akhir = false;
                             } elseif ($carbon::parse($laporanTerakhir) == $tgl_selesai) {
                                 $laporanRutin = true;
                                 $laporan_akhir = true;
                             } else {
-                                if (!empty($kerjaPraktek->laporan_akhir)) {
-                                    $laporanRutin = false;
-                                    $laporan_akhir = true;
-                                } else {
-                                    $laporanRutin = true;
-                                    $laporan_akhir = false;
-                                }
+                                $laporanRutin = false;
+                                $laporan_akhir = false;
                             }
                         @endphp
                         @if ($msib->laporan_akhir)
@@ -94,7 +89,6 @@
                             Masih Berlangsung</div>
                         @php
                             $laporanRutin = true;
-                            $laporan_akhir = false;
                         @endphp
                     @endif
                 @else
@@ -105,9 +99,9 @@
                         $laporan_akhir = false;
                     @endphp
                 @endif
-            </div>
+            </divc>
 
-            <a href="{{ route('admin-msib.index', $msib->id) }}"
+            <a href="{{ route('review-kampus-merdeka.index', $msib->id) }}"
                 class="btn-secondary mb-4 flex item-center gap-1 w-fit text-sm">
                 <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                     fill="none" viewBox="0 0 24 24">
@@ -160,37 +154,38 @@
             </div>
 
 
-            <div class="flex gap-5 justify-between md:justify-start items-start w-full border-b">
+            <div class="flex gap-5 justify-between md:justify-start items-start w-full">
                 <h2 class="mb-2 font-semibold text-base md:text-lg text-gray-800">List Laporan Kerja Praktek</h2>
-                <div><small>(Belum Terisi - {{ $sisaLaporan }} Laporan)</small></div>
-            </div>
-            <div class="flex rounded-b-md shadow overflow-hidden h-fit w-fit">
-                <a href="{{ route('admin-msib.detail', [
-                    'msib' => $msib->id,
-                ]) . '?tab=harian' }}"
-                    class="text-sm px-3 py-1.5 {{ $tab == 'harian' ? 'bg-primary-600 text-white' : '' }}">
-                    Laporan Harian
-                </a>
-                <a href="{{ route('admin-msib.detail', [
-                    'msib' => $msib->id,
-                ]) . '?tab=mingguan' }}"
-                    class="text-sm px-3 py-1.5 {{ $tab == 'mingguan' ? 'bg-primary-600 text-white' : '' }}">
-                    Laporan Mingguan
-                </a>
             </div>
 
+            <div class="border-t border-gray-300 p-0 m-0">
+                <div
+                    class="w-fit h-fit flex justify-start items-center border border-primary-200 rounded overflow-hidden text-sm">
+                    <a href="{{ route('review-kampus-merdeka.show', $msib->id) . '?tab=harian' }}"
+                        class="py-1 px-3 shadow @if ($tab == 'harian') bg-primary-500 text-white hover:bg-primary-600 focus:bg-primary-700 focus:ring-2 focus:ring-primary-200 @endif">Laporan
+                        Harian</a>
+                    <a href="{{ route('review-kampus-merdeka.show', $msib->id) . '?tab=mingguan' }}"
+                        class="py-1 px-3 shadow @if ($tab == 'mingguan') bg-primary-500 text-white hover:bg-primary-600 focus:bg-primary-700 focus:ring-2 focus:ring-primary-200 @endif">Laporan
+                        Mingguan</a>
+                </div>
+            </div>
 
             <div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+
                     @foreach ($laporanStatus as $item)
                         <div
-                            class="p-4 rounded shadow border h-fit @if ($item['sudah_isi']) b-primary @else b-gray @endif bg-white">
+                            class="p-4 rounded shadow border bg-white h-fit
+                        @if ($item['sudah_isi']) {{ !empty($item['laporan']->review_at) ? 'b-primary' : 'b-green' }}
+                            @else
+                            b-gray @endif
+                        ">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="font-semibold text-base">
                                     {{ $carbon::parse($item['tanggal'])->translatedFormat('l, d M Y') }}</h3>
                                 @if ($item['sudah_isi'])
                                     <span
-                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-{{ $item['laporan']->kehadiran == 'hadir' ? 'green' : 'yellow' }}-700 bg-{{ $item['laporan']->kehadiran == 'hadir' ? 'green' : 'yellow' }}-100 rounded capitalize">
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded capitalize">
                                         <i class="fas fa-check mr-1"></i> {{ $item['laporan']->kehadiran }}
                                     </span>
                                 @elseif ($item['isi_sekarang'])
@@ -249,7 +244,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="mt-4">
+                <div class="mt-6">
                     {{ $laporanStatus->links() }}
                 </div>
             </div>

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('kampus_merdekas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users', 'id')->cascadeOnDelete();
-            $table->foreignId('dosen_id')->constrained('users', 'id')->cascadeOnDelete();
+            $table->foreignId('dosen_id')->nullable()->constrained('users', 'id')->cascadeOnDelete();
             $table->enum('status', ['menunggu', 'diterima', 'ditolak'])->default('menunggu');
             $table->string('mitra');
             $table->enum('mobilitas', ['online', 'onsite']);

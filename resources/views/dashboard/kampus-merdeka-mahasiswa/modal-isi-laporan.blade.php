@@ -27,7 +27,8 @@
                     atau isi keterangan
                     sesuai kondisi jika anda tidak mengikuti kegiatan pada tanggal
                     {{ $carbon::parse($isiSekarang['tanggal'])->format('d-m-Y') }}</p>
-                <form class="space-y-4" action="{{ route('kampus-merdeka.simpan-laporan', $msib->id) }}" method="POST">
+                <form class="space-y-4" action="{{ route('kampus-merdeka.simpan-laporan', $msib->id) }}" method="POST"
+                    enctype="multipart/form-data">
 
                     @csrf
                     @method('post')
@@ -67,6 +68,14 @@
                                 @endforeach
                             </div>
                         </div>
+
+                        @if ($isiSekarang['jenis_laporan'] == 'mingguan')
+                            <div class="mt-3">
+                                <label for="file" class="label-ct">Upload file laporan mingguan</label>
+                                <input type="file" id="file" name="file" class="input-file"
+                                    accept="application/pdf,.doc,.docx" required>
+                            </div>
+                        @endif
 
                         {{-- Textarea Deskripsi --}}
                         <div class="mt-3">

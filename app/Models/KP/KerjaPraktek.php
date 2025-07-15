@@ -25,7 +25,7 @@ class KerjaPraktek extends Model
         return $this->hasMany(KerjaPraktekPendaftaran::class, 'kerja_praktek_id');
     }
 
-    public function dosen(): BelongsTo
+    public function dosenPembimbing(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dosen_id', 'id');
     }

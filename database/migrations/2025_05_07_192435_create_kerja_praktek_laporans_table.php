@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('jenis_laporan', ['harian', 'mingguan'])->default('harian');
             $table->enum('kehadiran', ['hadir', 'sakit', 'izin', 'alpa', 'libur'])->default('hadir');
             $table->text('deskripsi');
+            $table->string('file')->nullable()->unique();
             $table->dateTime('review_at')->nullable();
             $table->timestamps();
         });

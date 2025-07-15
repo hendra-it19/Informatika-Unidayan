@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kerja_prakteks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dosen_id')->constrained('users', 'id')->cascadeOnDelete();
+            $table->foreignId('dosen_id')->nullable()->constrained('users', 'id')->cascadeOnDelete();
             $table->string('mitra');
             $table->year('tahun');
             $table->enum('semester', ['ganjil', 'genap']);
